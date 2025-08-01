@@ -1,0 +1,47 @@
+class RailFenceCipher {
+    private final int rows, period;
+    RailFenceCipher(int rows) {
+        this.rows = rows;
+        this.period = 2*rows - 2;
+    }
+
+    String getEncryptedData(String message) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < rows; i++) {
+            String pattern;
+            if (i == 0) pattern = "(.)().{0," + (period - 1) + "}";
+            else if (i == rows - 1) pattern = ".{1," + (rows - 1) + "}(.?)().{0," + (rows - 2) + "}";
+            else pattern = ".{1," + i + "}(.?).{0," + (period - 1 - 2*i) + "}(.?).{0," + (i - 1) + "}";
+            sb.append(message.replaceAll(pattern, "$1$2"));
+        }
+        return sb.toString();
+    }
+
+    String getDecryptedData(String message) {
+        int length = message.length();
+        boolean[][] marker = new boolean[rows][length];
+        int direction = 1, currentRow = 0;
+        for (int i = 0; i < length; i++) {
+            marker[currentRow][i] = true;
+            currentRow += direction;
+            if (currentRow <= 0 || currentRow >= rows - 1) direction *= -1;
+        }
+        char[][] fence = new char[rows][length];
+        int messageIndex = 0;
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < length; j++) {
+                if (marker[i][j]) fence[i][j] = message.charAt(messageIndex++);
+            }
+        }
+        StringBuilder result = new StringBuilder();
+        direction = 1;
+        currentRow = 0;
+        for (int i = 0; i < length; i++) {
+            result.append(fence[currentRow][i]);
+            currentRow += direction;
+            if (currentRow <= 0 || currentRow >= rows - 1) direction *= -1;
+        }
+        return result.toString();
+    }
+
+}
